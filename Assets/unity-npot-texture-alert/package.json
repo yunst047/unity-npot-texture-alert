@@ -10,7 +10,7 @@
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.2.1"
   },
-  "unity": "6000.1.14",
+  "unity": "6000.1",
   "keywords": [
     "Editor"
   ],
