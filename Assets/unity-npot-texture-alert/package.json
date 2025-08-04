@@ -1,0 +1,18 @@
+{
+  "name": "com.yunst047.unity-npot-texture-alert",
+  "version": "0.0.1",
+  "displayName": "npot-texture-reporter",
+  "description": "Tools for handing textures that not in power of 2 or multiple of 4 format.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yunst047/unity-npot-texture-alert.git"
+  },
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
+  },
+  "unity": "6000.1",
+  "keywords": [
+    "Editor"
+  ],
+  "category": "texture"
+}
