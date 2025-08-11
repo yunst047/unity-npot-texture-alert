@@ -1,6 +1,6 @@
 {
   "name": "com.yunst047.unity-npot-texture-alert",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "displayName": "npot-texture-reporter",
   "description": "Tools for handing textures that not in power of 2 or multiple of 4 format.",
   "repository": {
