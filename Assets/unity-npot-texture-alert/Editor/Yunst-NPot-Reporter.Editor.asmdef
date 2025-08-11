@@ -2,7 +2,9 @@
     "name": "Yunst-NPot-Reporter",
     "rootNamespace": "yunst.npot.reporter",
     "references": [],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

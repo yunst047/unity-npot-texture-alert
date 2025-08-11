@@ -7,9 +7,11 @@ namespace yunst.npot.reporter
 {
     public class TextureChecker : EditorWindow
     {
-        private List<TextureInfo> nonCompliantTextures = new List<TextureInfo>();
+        public static List<TextureInfo> nonCompliantTextures { get; private set; } = new List<TextureInfo>();
         private Vector2 scrollPos;
         private bool filterPOT = true;
+
+        public bool EnablePreprocessBuild { get; private set; } = false;
 
         [MenuItem("Tools/Texture Tools/Non-compliant Texture Checker")]
         public static void ShowWindow()
@@ -20,16 +22,50 @@ namespace yunst.npot.reporter
         private void OnGUI()
         {
             GUILayout.Label("Filter Options", EditorStyles.boldLabel);
+            GUILayout.Space(10);
             EditorGUILayout.BeginHorizontal();
             filterPOT = EditorGUILayout.Toggle(filterPOT, GUILayout.Width(20));
             EditorGUILayout.LabelField("Only Find Non Multiple of Four Textures", GUILayout.ExpandWidth(true));
             EditorGUILayout.EndHorizontal();
+            
+            GUILayout.Space(10);
+            GUILayout.Label("Pre-Build Options", EditorStyles.boldLabel);
+            GUILayout.Space(10);
+            EditorGUILayout.BeginHorizontal();
+            bool newEnablePreprocessBuild = EditorGUILayout.Toggle(EnablePreprocessBuild, GUILayout.Width(20));
+            EditorGUILayout.LabelField("Enable Preprocess Build Alert", GUILayout.ExpandWidth(true));
+            EditorGUILayout.EndHorizontal();
+
+            if (newEnablePreprocessBuild != EnablePreprocessBuild)
+            {
+                EnablePreprocessBuild = newEnablePreprocessBuild;
+                EditorPrefs.SetBool("yunst.npot.reporter.EnablePreprocessBuild", EnablePreprocessBuild);
+                if (EnablePreprocessBuild)
+                {
+                    EditorUtility.DisplayDialog(
+                        "Preprocess Build Enabled",
+                        "The Preprocess Build feature is now enabled. It will check textures before building.",
+                        "OK"
+                    );
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog(
+                        "Preprocess Build Disabled",
+                        "The Preprocess Build feature is now disabled.",
+                        "OK"
+                    );
+                }
+            }
+        
+
 
             GUILayout.Space(10);
 
             if (GUILayout.Button("Check Textures"))
             {
-                CheckTextures();
+                nonCompliantTextures = CheckTextures(filterPOT);
+                Repaint();
             }
 
             GUILayout.Space(10);
@@ -92,14 +128,14 @@ namespace yunst.npot.reporter
                         {
                             ResizeTextureToPowerOfTwo(textureInfo.Path);
                             if (EditorUtility.DisplayDialog(
-                "Crunch Compression",
-                $"Do you want to apply Crunch Compression to {textureInfo.Path}?",
-                "Yes",
-                "No"))
+                                "Crunch Compression",
+                                $"Do you want to apply Crunch Compression to {textureInfo.Path}?",
+                                "Yes",
+                                "No"))
                             {
                                 TextureCompressionTool.ApplyCompressionAtPath(textureInfo.Path);
                             }
-                            CheckTextures(); // Refresh after resizing
+                            nonCompliantTextures = CheckTextures(filterPOT); // Refresh after resizing
                         }
                     }
                     if (
@@ -126,14 +162,14 @@ namespace yunst.npot.reporter
                         {
                             ResizeTextureToMultipleOfFour(textureInfo.Path);
                             if (EditorUtility.DisplayDialog(
-                  "Crunch Compression",
-                  $"Do you want to apply Crunch Compression to {textureInfo.Path}?",
-                  "Yes",
-                  "No"))
+                                "Crunch Compression",
+                                $"Do you want to apply Crunch Compression to {textureInfo.Path}?",
+                                "Yes",
+                                "No"))
                             {
                                 TextureCompressionTool.ApplyCompressionAtPath(textureInfo.Path);
                             }
-                            CheckTextures(); // Refresh after resizing
+                            nonCompliantTextures = CheckTextures(filterPOT); // Refresh after resizing
                         }
                     }
 
@@ -150,9 +186,14 @@ namespace yunst.npot.reporter
             }
         }
 
-        private void CheckTextures()
+        private void OnEnable()
         {
-            nonCompliantTextures.Clear();
+            EnablePreprocessBuild = EditorPrefs.GetBool("yunst.npot.reporter.EnablePreprocessBuild", false);
+        }
+
+        public static List<TextureInfo> CheckTextures(bool filterPOT)
+        {
+            var result = new List<TextureInfo>();
             string[] guids = AssetDatabase.FindAssets("t:Texture");
 
             foreach (string guid in guids)
@@ -183,7 +224,7 @@ namespace yunst.npot.reporter
                     {
                         if (notMultipleOfFour)
                         {
-                            nonCompliantTextures.Add(
+                            result.Add(
                                 new TextureInfo
                                 {
                                     Path = path,
@@ -197,7 +238,7 @@ namespace yunst.npot.reporter
                     {
                         if (notPowerOfTwo || notMultipleOfFour)
                         {
-                            nonCompliantTextures.Add(
+                            result.Add(
                                 new TextureInfo
                                 {
                                     Path = path,
@@ -211,16 +252,15 @@ namespace yunst.npot.reporter
                 }
             }
 
-            Repaint(); // Refresh the window to show results
+            return result;
         }
 
-       
-        public bool IsMultipleOfFour(int value)
+        public static bool IsMultipleOfFour(int value)
         {
             return value % 4 == 0;
         }
 
-        public bool IsPowerOfTwo(int value)
+        public static bool IsPowerOfTwo(int value)
         {
             return (value & (value - 1)) == 0;
         }
@@ -237,7 +277,7 @@ namespace yunst.npot.reporter
 
 
 
-        private class TextureInfo
+        public class TextureInfo
         {
             public string Path { get; set; }
             public bool NotPowerOfTwo { get; set; }
